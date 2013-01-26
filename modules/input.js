@@ -43,6 +43,8 @@ function event_clone (event) {
     this.altKey = event.altKey;
     this.shiftKey = event.shiftKey;
     this.sticky_modifiers = event.sticky_modifiers;
+    // Whether this event was faked by key aliasing system
+    this.faked_by_overlay = event.faked_by_overlay;
 }
 
 

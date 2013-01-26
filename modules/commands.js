@@ -334,6 +334,7 @@ function send_key_as_event (window, element, combo) {
         split.metaKey,
         split.keyCode,
         split.charCode);
+    event.faked_by_overlay = true;
     if (element) {
         return element.dispatchEvent(event);
     } else {
