@@ -21,6 +21,7 @@ define_variable("keyboard_key_sequence_help_timeout", 0,
     "Delay (in millseconds) before the current key sequence prefix is "+
     "displayed in the minibuffer.");
 
+var isMeta = false;
 
 /**
  * event_clone is used to make a copy of an event which is safe to keep
@@ -75,7 +76,9 @@ function input_state () {
 input_state.prototype = {
     constructor: input_state,
     continuation: null,
-    fallthrough: null
+    fallthrough: null,
+    // Monkey
+    isMeta: false
 };
 
 
@@ -159,6 +162,7 @@ function get_current_keymaps (window) {
  * additional, special tasks.
  */
 function input_handle_sequence (event) {
+    // dumpln("Start sequence");
     try {
         var window = this;
         var state = window.input.current;
@@ -169,6 +173,8 @@ function input_handle_sequence (event) {
         var keymaps = get_current_keymaps(window);
 sequence:
         while (true) {
+            // dumpln(event.type +":"+ (keycode_to_vk_name[event.keyCode] || "") + (state.isMeta ? ":meta" : ""));
+
             switch (event.type) {
             case "keydown":
                 //try the fallthrough predicates in our current keymap
@@ -269,28 +275,42 @@ sequence:
         dump_error(e);
     } finally {
         // sequence is done
+        // dumpln("Finished sequence");
+        state.isMeta = false;
         delete state.continuation;
     }
 }
 
 
 function input_handle_keydown (event) {
+    // dumpln(event.type + ":" + keycode_to_vk_name[event.keyCode] + ":" + event.keyCode);
+    // dumpln([event.ctrlKey, event.altKey, event.shiftKey, event.metaKey].join(" "));
     if (event.keyCode == 0 ||
         event.keyCode == vk_name_to_keycode.shift ||
         event.keyCode == vk_name_to_keycode.control ||
         event.keyCode == vk_name_to_keycode.alt ||
         event.keyCode == vk_name_to_keycode.caps_lock)
         return event_kill(event);
+
     var window = this;
     var state = window.input.current;
-    if (state.continuation)
-        state.continuation(event);
+    // dumpln([state.isMeta, event.metaKey].join(":"));
+    if (event.keyCode == vk_name_to_keycode.win) {
+        isMeta = true;
+        state.isMeta = true;
+        return event_kill(event);
+    }
+    if (state.continuation) {
+      state.continuation(event);
+    }
     else
         co_call(input_handle_sequence.call(window, event));
 }
 
 
 function input_handle_keypress (event) {
+    // dumpln(event.type + ":" + keycode_to_vk_name[event.keyCode] + ":" + event.keyCode);
+    // dumpln([event.ctrlKey, event.altKey, event.shiftKey, event.metaKey].join(" "));
     if (event.keyCode == 0 && event.charCode == 0 ||
         event.keyCode == vk_name_to_keycode.caps_lock)
         return event_kill(event);
@@ -304,6 +324,8 @@ function input_handle_keypress (event) {
 
 
 function input_handle_keyup (event) {
+    // dumpln(event.type + ":" + keycode_to_vk_name[event.keyCode] + ":" + event.keyCode);
+    // dumpln([event.ctrlKey, event.altKey, event.shiftKey, event.metaKey].join(" "));
     if (event.keyCode == 0 ||
         event.keyCode == vk_name_to_keycode.shift ||
         event.keyCode == vk_name_to_keycode.control ||
@@ -312,6 +334,12 @@ function input_handle_keyup (event) {
         return event_kill(event);
     var window = this;
     var state = window.input.current;
+    // dumpln([state.isMeta, event.metaKey].join(":"));
+    if (event.keyCode == vk_name_to_keycode.win) {
+        isMeta = false;
+        state.isMeta = false;
+        return event_kill(event);
+    }
     if (state.fallthrough[event.keyCode])
         delete state.fallthrough[event.keyCode];
     else
@@ -356,9 +384,9 @@ function input_sequence_abort (message) {
 
 function input_initialize_window (window) {
     window.input = new input_stack();
-    //window.addEventListener("keydown", input_handle_keydown, true);
+    window.addEventListener("keydown", input_handle_keydown, true);
     window.addEventListener("keypress", input_handle_keypress, true);
-    //window.addEventListener("keyup", input_handle_keyup, true);
+    window.addEventListener("keyup", input_handle_keyup, true);
     //TO-DO: mousedown, mouseup, click, dblclick
     window.addEventListener("AppCommand", input_handle_appcommand, true);
 }
