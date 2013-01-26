@@ -33,6 +33,22 @@ function modifier (in_event_p, set_in_event) {
     this.set_in_event = set_in_event;
 }
 
+// xulrunner os-key modifier (version >= 15)
+function osKey (event) {
+    // For events cloned by event_clone, or faked by
+    // send_key_as_event. This should be consistent with
+    // getModifierState should xulrunner provide it in the future
+    // (otherwise it is a xulrunner bug)
+    if (event.osKey) {
+        return true;
+    }
+    // For original/real events
+    if (typeof event.getModifierState == "function") {
+        return event.getModifierState("OS");
+    }
+    return false;
+}
+
 var modifiers = {
     A: new modifier(function (event) { return event.altKey; },
                     function (event) { event.altKey = true; }),
@@ -75,6 +91,10 @@ if (get_os() == 'Darwin') {
     modifier_order = ['C', 'M', 'A', 'S'];
 } else {
     modifiers.M = modifiers.A;
+    // https://developer.mozilla.org/en-US/docs/DOM/KeyboardEvent#getModifierState()
+    modifiers.s = new modifier(function(event) { return osKey(event); },
+                               function(event) { event.osKey = true; });
+    modifier_order = ['C', 'M', 'S', 's'];
 }
 
 
@@ -117,7 +137,8 @@ function unformat_key_combo (combo) {
         altKey: false,
         ctrlKey: false,
         metaKey: false,
-        shiftKey: false
+        shiftKey: false,
+        osKey: false
     };
     var M;
     var i = 0;
@@ -199,6 +220,7 @@ define_key_match_predicate('match_any_unmodified_character', 'any unmodified cha
                     || event.keyCode > 31)
                 && !modifiers.A.in_event_p(event)
                 && !event.metaKey
+                && !osKey(event)
                 && !event.ctrlKey
                 && !event.sticky_modifiers;
         } catch (e) { return false; }
@@ -209,6 +231,7 @@ define_key_match_predicate('match_checkbox_keys', 'checkbox keys',
         return event.keyCode == 32
             && !event.shiftKey
             && !event.metaKey
+            && !osKey(event)
             && !event.altKey
             && !event.ctrlKey;
         //XXX: keycode fallthroughs don't support sticky modifiers
@@ -220,6 +243,7 @@ define_key_match_predicate('match_text_keys', 'text editing keys',
                 || event.keyCode == 13 || event.keyCode > 31)
             && !event.ctrlKey
             && !event.metaKey
+            && !osKey(event)
             && !modifiers.A.in_event_p(event);
         //XXX: keycode fallthroughs don't support sticky modifiers
     });
@@ -229,6 +253,7 @@ define_key_match_predicate('match_not_escape_key', 'any key but escape',
         return event.keyCode != 27 ||
              event.shiftKey ||
              event.altKey ||
+             osKey(event) ||
              event.metaKey || // M-escape can also leave this mode, so we
                               // need to use an accurate determination of
                               // whether the "M" modifier was pressed,

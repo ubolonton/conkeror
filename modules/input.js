@@ -42,6 +42,8 @@ function event_clone (event) {
     this.altKey = event.altKey;
     this.shiftKey = event.shiftKey;
     this.sticky_modifiers = event.sticky_modifiers;
+
+    this.osKey = osKey(event);
 }
 
 
