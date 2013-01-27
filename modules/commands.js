@@ -335,6 +335,7 @@ function send_key_as_event (window, element, combo) {
         split.keyCode,
         split.charCode);
     event.osKey = split.osKey;
+    event.faked_by_sending = true;
     if (element) {
         return element.dispatchEvent(event);
     } else {

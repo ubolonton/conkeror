@@ -10,10 +10,18 @@ require("input.js");
 
 define_keymap("global_overlay_keymap");
 
+define_variable("global_overlay_keymap_chain_aliases", true,
+    "Whether key aliases should be chained. For example, with definition:\n" +
+    "define_key_alias(\"M-v\", \"M-n\");\n" +
+    "define_key_alias(\"M-n\", \"right\");\n" +
+    "\"M-v\" gets aliased to \"right\" if this is set to true, \"M-n\"" +
+    "if this is set to false. The latter is similar to Emacs' behavior.");
 
 function global_overlay_keymap_handler (window, I, true_event) {
     var binding = keymap_lookup([global_overlay_keymap], I.combo, I.event);
     if (!binding)
+        return false;
+    if (!global_overlay_keymap_chain_aliases && true_event.faked_by_sending)
         return false;
     if (!binding.fallthrough)
         event_kill(true_event);
