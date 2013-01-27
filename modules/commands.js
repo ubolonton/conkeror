@@ -336,6 +336,7 @@ function send_key_as_event (window, element, combo) {
         split.metaKey,
         split.keyCode,
         split.charCode);
+    event.aliased_by_conkeror = true;
     if (element) {
         return element.dispatchEvent(event);
     } else {
