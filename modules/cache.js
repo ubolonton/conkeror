@@ -18,34 +18,41 @@ const CACHE_SESSION_HTTP_OFFLINE = "HTTP-offline";
 const CACHE_SESSION_FTP          = "FTP";
 
 // Returns null if uri is not cached.
-function cache_entry_open (cache_type, cache_session, uri) {
+function cache_entry_open (cache_type, cache_session, uri, callback, errback) {
     if (uri instanceof Ci.nsIURI)
         uri = uri.spec;
     let session = cache_service.createSession(cache_session, 0, true);
     session.doomEntriesIfExpired = false;
     // Remove the ref component of the URL
     let cache_key = uri.replace(/#.*$/, "");
-    try {
-        return session.openCacheEntry(cache_key,
-                                      Ci.nsICache.ACCESS_READ,
-                                      false);
-    }
-    catch (ex) {
-        if (ex.name == "NS_ERROR_CACHE_KEY_NOT_FOUND" ||
-            ex.name == "NS_ERROR_CACHE_WAIT_FOR_VALIDATION")
-            return null;
-        throw ex;
-    }
+
+    var listener = {
+        onCacheEntryAvailable: function(entry, _access_mode, status) {
+            if (status == Components.results.NS_OK) {
+                callback(entry);
+            } else if (status == Components.results.NS_ERROR_CACHE_KEY_NOT_FOUND ||
+                       status == Components.results.NS_ERROR_CACHE_WAIT_FOR_VALIDATION) {
+                callback(null);
+            } else if (errback) {
+                errback(status);
+            } else {
+                throw(status);
+            }
+        }
+    };
+
+    session.asyncOpenCacheEntry(
+        cache_key, Ci.nsICache.ACCESS_READ,
+        listener, true);
 }
 
-// Returns false if uri is not cached, else true.
 function cache_entry_clear (cache_type, cache_session, uri) {
-    let entry = cache_entry_open(cache_type, cache_session, uri);
-    if (entry == null)
-        return false;
-    entry.doom();
-    entry.close();
-    return true;
+    cache_entry_open(cache_type, cache_session, uri, function(entry) {
+        if (entry != null) {
+            entry.doom();
+            entry.close();
+        }
+    });
 }
 
 function cache_clear (cache_type) {
