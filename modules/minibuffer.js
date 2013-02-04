@@ -353,13 +353,27 @@ minibuffer.prototype = {
             s.load();
             this.active = true;
         } else {
+            // Restore focus if the last state was popped
             if (this.active) {
                 this.active = false;
                 this.window.buffers.current.browser.focus();
                 if (this.saved_focused_element && this.saved_focused_element.focus)
                     set_focus_no_scroll(this.window, this.saved_focused_element);
-                else if (this.saved_focused_frame)
+                // FIX: This can be a transient window that was closed
+                // before we get here. For example, in recent
+                // xulrunner versions if a page opens a uri in a new
+                // window, and this uri is handled by an external app
+                // dialog (conkeror's download helper in this case),
+                // the dialog "show" method is called before the new
+                // window is closed (which happens later in a timer),
+                // and that window is recorded; when we come here
+                // (after popping the last state), the window will
+                // have already been closed, becoming a dead object
+                // that can't be focused on. Maybe it's better to have
+                // a "ignore_dead_element" for "set_focus_no_scroll"
+                else if (this.saved_focused_frame && !is_dead(this.saved_focused_frame)) {
                     set_focus_no_scroll(this.window, this.saved_focused_frame);
+                }
                 this.saved_focused_element = null;
                 this.saved_focused_frame = null;
                 this._show(this.current_message || this.default_message);

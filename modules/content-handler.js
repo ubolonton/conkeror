@@ -26,14 +26,14 @@ function content_handler_context (launcher, context) {
     var xulrunner_version = Cc['@mozilla.org/xre/app-info;1']
         .getService(Ci.nsIXULAppInfo)
         .platformVersion;
-    var vc = Cc["@mozilla.org/xpcom/version-comparator;1"]  
-        .getService(Ci.nsIVersionComparator);  
+    var vc = Cc["@mozilla.org/xpcom/version-comparator;1"]
+        .getService(Ci.nsIVersionComparator);
     this.launcher = launcher;
     try {
         this.frame = context.QueryInterface(Ci.nsIInterfaceRequestor)
             .getInterface((vc.compare(xulrunner_version, "8.0") >= 0) ?
                           Ci.nsIDOMWindow :
-                          Ci.nsIDOMWindowInternal)
+                          Ci.nsIDOMWindowInternal);
         this.window = get_window_from_frame(this.frame);
         this.buffer = get_buffer_from_frame(this.frame);
     } catch (e) {

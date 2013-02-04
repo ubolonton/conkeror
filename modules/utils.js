@@ -695,4 +695,8 @@ function set_protocol_handler (protocol, handler) {
     hs.store(info);
 }
 
+function is_dead(object) {
+    return Object.prototype.toString.call(object) == "[object DeadObject]";
+}
+
 provide("utils");
