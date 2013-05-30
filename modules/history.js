@@ -8,14 +8,15 @@
 **/
 
 define_keywords("$use_history", "$use_bookmarks", "$match_required",
-                "$sort_order");
+                "$sort_order", "$limit");
 function history_completer () {
-    keywords(arguments, $sort_order = "visitcount_descending");
+    keywords(arguments, $sort_order = "visitcount_descending", $limit = 50);
     var use_history = arguments.$use_history;
     var use_bookmarks = arguments.$use_bookmarks;
     let match_required = arguments.$match_required;
     var sort_order = Ci.nsINavHistoryQueryOptions[
         "SORT_BY_" + arguments.$sort_order.toUpperCase()];
+    var limit = arguments.$limit;
     return function (input, pos, conservative) {
         if (conservative && input.length == 0)
             return null;
@@ -25,6 +26,7 @@ function history_completer () {
             query.onlyBookmarked = true;
         var options = nav_history_service.getNewQueryOptions();
         options.sortingMode = sort_order;
+        options.maxResults = limit;
         if (use_bookmarks && !use_history)
             options.queryType = options.QUERY_TYPE_BOOKMARKS;
         else if (use_history && !use_bookmarks)
