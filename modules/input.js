@@ -138,6 +138,13 @@ define_window_local_hook("keypress_hook", RUN_HOOK_UNTIL_SUCCESS,
     "handler is responsible for stopping event propagation, if "+
     "that is desired.");
 
+define_window_local_hook("keydown_hook", RUN_HOOK_UNTIL_SUCCESS,
+    "A run-until-success hook available for special keydown "+
+    "handling.  Handlers receive as arguments the window, an "+
+    "interactive context, and the real keypress event.  The "+
+    "handler is responsible for stopping event propagation, if "+
+    "that is desired.");
+
 
 /**
  * get_current_keymaps returns the keymap stack for the current focus
@@ -176,8 +183,15 @@ sequence:
                 if (keymap_lookup_fallthrough(keymaps[keymaps.length - 1], event)) {
                     //XXX: need to take account of modifers, too!
                     state.fallthrough[event.keyCode] = true;
-                } else
-                    event_kill(event);
+                } else {
+                    // We only want to stop propagation here, not
+                    // preventing default, otherwise keypress will not
+                    // be triggered. It seems recent versions of
+                    // xulrunner include triggering keypress in the
+                    // "default" behavior of keydown (TODO: Find out
+                    // when). Anyway let the hook decide.
+                    keydown_hook.run(window, I, event);
+                }
                 break;
             case "keypress":
             case "AppCommand":
@@ -357,7 +371,7 @@ function input_sequence_abort (message) {
 
 function input_initialize_window (window) {
     window.input = new input_stack();
-    //window.addEventListener("keydown", input_handle_keydown, true);
+    window.addEventListener("keydown", input_handle_keydown, true);
     window.addEventListener("keypress", input_handle_keypress, true);
     //window.addEventListener("keyup", input_handle_keyup, true);
     //TO-DO: mousedown, mouseup, click, dblclick
