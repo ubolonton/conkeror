@@ -11,9 +11,10 @@
  * get_os returns a string identifying the current OS.
  * possible values include 'Darwin', 'Linux' and 'WINNT'.
  */
-let (xul_runtime = Cc['@mozilla.org/xre/app-info;1']
-         .getService(Ci.nsIXULRuntime)) {
-    function get_os () {
+{
+    let xul_runtime = Cc['@mozilla.org/xre/app-info;1']
+        .getService(Ci.nsIXULRuntime);
+    var get_os = function get_os () {
         return xul_runtime.OS;
     }
 }
@@ -37,9 +38,10 @@ function get_mozilla_version () {
  * getenv returns the value of a named environment variable or null if
  * the environment variable does not exist.
  */
-let (env = Cc['@mozilla.org/process/environment;1']
-         .getService(Ci.nsIEnvironment)) {
-    function getenv (variable) {
+{
+    let env = Cc['@mozilla.org/process/environment;1']
+        .getService(Ci.nsIEnvironment);
+    var getenv = function getenv (variable) {
         if (env.exists(variable))
             return env.get(variable);
         return null;
@@ -58,10 +60,11 @@ function get_home_directory () {
         var home = getenv('HOME') ||
             getenv('USERPROFILE') ||
             getenv('HOMEDRIVE') + getenv('HOMEPATH');
-        home = home.replace("/", "\\", "g");
+        home = home.replace(/\//g, "\\");
         dir.initWithPath(home);
-    } else
+    } else {
         dir.initWithPath(getenv('HOME'));
+    }
     return dir;
 }
 
@@ -75,8 +78,9 @@ function get_home_directory () {
  * not be depended on for anything important.  It is mainly intended for
  * decoration of the window title and mode-line.
  */
-let (profile_name = null) {
-    function get_current_profile () {
+{
+    let profile_name = null;
+    var get_current_profile = function get_current_profile () {
         if (profile_name)
             return profile_name;
         if ("@mozilla.org/profile/manager;1" in Cc) {

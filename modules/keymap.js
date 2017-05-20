@@ -10,8 +10,9 @@
 /* Generate vk name table  */
 var keycode_to_vk_name = [];
 var vk_name_to_keycode = {};
-let (KeyEvent = Ci.nsIDOMKeyEvent,
-     prefix = "DOM_VK_") {
+{
+    let KeyEvent = Ci.nsIDOMKeyEvent,
+        prefix = "DOM_VK_";
     for (var i in KeyEvent) {
         /* Check if this is a key binding */
         if (i.substr(0, prefix.length) == prefix) {
@@ -189,7 +190,7 @@ function define_keymap (name) {
 
 function define_key_match_predicate (name, description, predicate) {
     conkeror[name] = predicate;
-    conkeror[name].name = name;
+    conkeror[name].displayName = name;
     conkeror[name].description = description;
     return conkeror[name];
 }
@@ -197,7 +198,6 @@ function define_key_match_predicate (name, description, predicate) {
 define_key_match_predicate('match_any_key', 'any key',
     function (event) true);
 
-// should be renamed to match_any_unmodified_character
 define_key_match_predicate('match_any_unmodified_character', 'any unmodified character',
     function (event) {
         // this predicate can be used for both keypress and keydown

@@ -19,18 +19,18 @@ var unmanaged_download_info_list = [];
 var id_to_download_info = new Map();
 
 try {
-    Components.utils.import("resource://gre/modules/Downloads.jsm");
+    Cu.import("resource://gre/modules/Downloads.jsm");
     if (typeof(Downloads.getList) == 'undefined')
         throw "bad Downloads.jsm version";
     var use_downloads_jsm = true;
 
-    function lookup_download(download) {
+    var lookup_download = function lookup_download(download) {
         return id_to_download_info.get(download);
     }
 } catch (e) {
     var use_downloads_jsm = false;
 
-    function lookup_download(download) {
+    var lookup_download = function lookup_download(download) {
         return id_to_download_info.get(download.id);
     }
 }
@@ -44,7 +44,6 @@ const DOWNLOAD_FAILED = Ci.nsIDownloadManager.DOWNLOAD_FAILED;
 const DOWNLOAD_CANCELED = Ci.nsIDownloadManager.DOWNLOAD_CANCELED;
 const DOWNLOAD_PAUSED = Ci.nsIDownloadManager.DOWNLOAD_PAUSED;
 const DOWNLOAD_QUEUED = Ci.nsIDownloadManager.DOWNLOAD_QUEUED;
-const DOWNLOAD_BLOCKED = Ci.nsIDownloadManager.DOWNLOAD_BLOCKED;
 const DOWNLOAD_SCANNING = Ci.nsIDownloadManager.DOWNLOAD_SCANNING;
 
 
@@ -1053,24 +1052,24 @@ function download_completer (completions) {
         };
     }
     all_word_completer.call(this, forward_keywords(arguments),
-                            $completions = completions);
+                            $completions = completions,
+                            $get_string = function (x) {
+                                if (use_downloads_jsm)
+                                    return x.target.path;
+                                else
+                                    return x.displayName;
+                            },
+                            $get_description = function (x) {
+                                if (use_downloads_jsm)
+                                    return x.source.url;
+                                else
+                                    return x.source.spec
+                            });
 }
 download_completer.prototype = {
     constructor: download_completer,
     __proto__: all_word_completer.prototype,
-    toString: function () "#<download_completer>",
-    get_string: function (x) {
-        if (use_downloads_jsm)
-            return x.target.path;
-        else
-            return x.displayName;
-    },
-    get_description: function (x) {
-        if (use_downloads_jsm)
-            return x.source.url;
-        else
-            return x.source.spec
-    }
+    toString: function () "#<download_completer>"
 };
 
 minibuffer.prototype.read_download = function () {
@@ -1127,7 +1126,7 @@ function open_download_buffer_automatically (info) {
         download_show(buf ? buf.window : null, target, info.mozilla_info);
     } else {
         var timer = null;
-        function finish () {
+        var finish = function finish () {
             timer.cancel();
         }
         add_hook.call(info, "download_finished_hook", finish);

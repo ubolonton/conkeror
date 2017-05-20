@@ -90,10 +90,10 @@ opensearch_xml_completer.prototype = {
                     if (name)
                         narrowed.push([name,desc]);
                 }
-                delete doc;
-                delete elem;
-                delete result;
-                delete lspec;
+                delete this.doc;
+                delete this.elem;
+                delete this.result;
+                delete this.lspec;
                 yield co_return(new opensearch_xml_completions(this, narrowed));
             }
         } catch (e) {
@@ -117,8 +117,8 @@ opensearch_json_completer.prototype = {
             let lspec = this.eng.get_query_load_spec(str, opensearch_response_type_json);
             let result = yield send_http_request(lspec);
             let data = JSON.parse(result.responseText);
-            delete result;
-            delete lspec;
+            delete this.result;
+            delete this.lspec;
             if (!(array_p(data) &&
                   data.length >= 2 &&
                   typeof data[0] == "string" &&
@@ -297,7 +297,7 @@ function opensearch_parse (node) {
 function opensearch_read_file (file) {
     var file_istream = Cc["@mozilla.org/network/file-input-stream;1"]
         .createInstance(Ci.nsIFileInputStream);
-    file_istream.init(file, MODE_RDONLY, 0644, false);
+    file_istream.init(file, MODE_RDONLY, parseInt("0644", 8), false);
     var dom_parser = Cc["@mozilla.org/xmlextras/domparser;1"]
         .createInstance(Ci.nsIDOMParser);
     var doc = dom_parser.parseFromStream(file_istream, "UTF-8",
@@ -315,7 +315,7 @@ function define_opensearch_webjump (name, spec) {
     if (spec instanceof Ci.nsIFile)
         path = spec;
     else {
-        for (i = 0, n = opensearch_load_paths.length; i < n; ++i) {
+        for (let i = 0, n = opensearch_load_paths.length; i < n; ++i) {
             path = make_file(opensearch_load_paths[i]).clone();
             path.append(spec);
             if (path.exists())
@@ -343,7 +343,6 @@ define_opensearch_webjump("google", "google.xml");
 define_opensearch_webjump("bugzilla", "mozilla-bugzilla.xml");
 define_opensearch_webjump("wikipedia", "wikipedia.xml");
 define_opensearch_webjump("wiktionary", "wiktionary.xml");
-define_opensearch_webjump("answers", "answers.xml");
 define_opensearch_webjump("yahoo", "yahoo.xml");
 define_opensearch_webjump("creativecommons", "creativecommons.xml");
 define_opensearch_webjump("ebay", "eBay.xml");

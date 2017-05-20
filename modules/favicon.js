@@ -17,12 +17,14 @@ define_variable("favicon_image_max_size", 1024,
     "is considered for use as a favicon.");
 
 
-let (favicon_set_internal) {
+{
+    let favicon_set_internal;
     if (version_compare(get_mozilla_version(), "18.0") >= 0) {
         favicon_set_internal = function (buffer, icon_url) {
             favicon_service.setAndFetchFaviconForPage(
                 buffer.current_uri, icon_url, false,
-                favicon_service.FAVICON_LOAD_NON_PRIVATE);
+                favicon_service.FAVICON_LOAD_NON_PRIVATE,
+                function() { }, buffer.document.nodePrincipal);
         };
     } else {
         favicon_set_internal = function (buffer, icon_url) {
@@ -30,7 +32,7 @@ let (favicon_set_internal) {
                 buffer.current_uri, icon_url, false);
         };
     }
-    function favicon_set (buffer, icon_url) {
+    var favicon_set = function favicon_set (buffer, icon_url) {
         favicon_set_internal(buffer, icon_url);
         buffer.icon = icon_url.spec;
     }

@@ -147,7 +147,7 @@ function get_url_or_webjump (input) {
 // on webjump names, and one specific to the individual webjump.
 function webjump_name_completer () {
     prefix_completer.call(this,
-        $completions = [v for ([k, v] in Iterator(webjumps))],
+        $completions = object_values(webjumps),
         $get_string = function (x) x.name + (x.argument == false ? "" : " "),
         $get_description = function (x) x.doc || "");
 }
@@ -220,8 +220,8 @@ function define_default_webjumps () {
                    "http://conkeror.org/?action=fullsearch&context=60&value=%s&fullsearch=Text");
     define_webjump("lucky",      "https://www.google.com/search?q=%s&btnI=I'm Feeling Lucky");
     define_webjump("maps",       "https://maps.google.com/?q=%s");
-    define_webjump("scholar",    "http://scholar.google.com/scholar?q=%s");
-    define_webjump("slang",      "http://www.urbandictionary.com/define.php?term=%s");
+    define_webjump("scholar",    "https://scholar.google.com/scholar?q=%s");
+    define_webjump("slang",      "https://www.urbandictionary.com/define.php?term=%s");
     define_webjump("dictionary", "http://dictionary.reference.com/search?q=%s");
     define_webjump("image",      "https://www.google.com/images?q=%s");
 }

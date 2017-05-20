@@ -27,12 +27,15 @@ function makeURLAbsolute (base, url) {
 
 
 function make_file (path) {
-    if (path instanceof Ci.nsILocalFile)
+    if (path instanceof Ci.nsILocalFile) {
         return path;
-    if (path == "~")
+    }
+    if (path == "~") {
         return get_home_directory();
-    if (WINDOWS)
-        path = path.replace("/", "\\", "g");
+    }
+    if (WINDOWS) {
+        path = path.replace(/\//g, "\\");
+    }
     if ((POSIX && path.substring(0,2) == "~/") ||
         (WINDOWS && path.substring(0,2) == "~\\"))
     {
@@ -204,7 +207,7 @@ function get_temporary_file (name) {
     var file = file_locator_service.get("TmpD", Ci.nsIFile);
     file.append(name);
     // Create the file now to ensure that no exploits are possible
-    file.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, 0600);
+    file.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, parseInt("0600", 8));
     return file;
 }
 
@@ -400,15 +403,9 @@ var xml_http_request_load_listener = {
   },
 
   // nsISupports
-  //
-  // FIXME: array comprehension used here to hack around the lack of
-  // Ci.nsISSLErrorListener in 2007 versions of xulrunner 1.9pre.
-  // make it a simple generateQI when xulrunner is more stable.
-  QueryInterface: XPCOMUtils.generateQI(
-      [i for each (i in [Ci.nsIBadCertListener2,
-                         Ci.nsISSLErrorListener,
-                         Ci.nsIInterfaceRequestor])
-       if (i)])
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIBadCertListener2,
+                                         Ci.nsISSLErrorListener,
+                                         Ci.nsIInterfaceRequestor])
 };
 
 
@@ -576,8 +573,9 @@ function get_contents_synchronously (url) {
  * load_spec.
  */
 function make_post_data (data) {
-    data = [(encodeURIComponent(pair[0])+'='+encodeURIComponent(pair[1]))
-            for each (pair in data)].join('&');
+    data = data.map(function(pair) {
+        return (encodeURIComponent(pair[0])+'='+encodeURIComponent(pair[1]))
+    }).join('&');
     data = string_input_stream(data);
     return mime_input_stream(
         data, [["Content-Type", "application/x-www-form-urlencoded"]]);

@@ -1,13 +1,70 @@
-conkeror (1.0~~pre-1+git150129-1) UNRELEASED; urgency=medium
+conkeror (1.0.3+git170123-1) unstable; urgency=medium
+
+  * New upstream snapshot.
+    + Fixes minor compatibility issues with more recent Firefox versions.
+  * Create a proper watch file now that upstream uses Semantic Versioning.
+
+ -- Axel Beckert <abe@debian.org>  Mon, 23 Jan 2017 00:18:58 +0100
+
+conkeror (1.0.3-1) unstable; urgency=medium
+
+  * New upstream release
+  * Massively simplify /usr/bin/conkeror, no more look for xulrunner.
+    + Drop alternative dependencies on xulrunner-<version>.
+    + Only support firefox, firefox-esr and iceweasel.
+    + Set $XUL_APP_FILE instead of passing "-app".
+    + Update package description to no more mention XULRunner.
+    + Remove related lintian overrides.
+  * Declare compliance with Debian Policy 3.9.8.
+  * Update locations of some cross-references in debian/copyright.
+  * Override Lintian warnings vcs-field-uses-insecure-uri since repo.or.cz
+    only uses a self-signed SSL certificate.
+
+ -- Axel Beckert <abe@debian.org>  Wed, 08 Jun 2016 01:49:35 +0200
+
+conkeror (1.0~~pre-1+git160130-1) unstable; urgency=high
+
+  * New upstream snapshot:
+    + Fixes let syntax with Firefox/Iceweasel 44. (Closes: #813039)
+  * Enable all hardening features for conkeror-spawn-helper.
+
+ -- Axel Beckert <abe@debian.org>  Sat, 30 Jan 2016 03:11:03 +0100
+
+conkeror (1.0~~pre-1+git150730-1) unstable; urgency=medium
+
+  * New upstream snapshot:
+    + Fixes saveURI issues with Firefox >= 36
+    + Fixes issues with more recent adblockplus releases.
+
+ -- Axel Beckert <abe@debian.org>  Thu, 30 Jul 2015 21:49:14 +0200
+
+conkeror (1.0~~pre-1+git150409-1) unstable; urgency=medium
 
   * New upstream snapshot:
     + StackExchange page-mode no more loaded by default (Closes: #772655)
+    + Fixes JS syntax errors with Iceweasel 36 and above (Closes: #781487)
     + Update debian/conkeror.install to new location of conkeror.desktop
   * Try to make debian package builds reproducible.
     + Set dates and hostname in BuildID to data only depending on the
       current changelog entry.
+  * Update bug report script to also look for iceweasel's bug report
+    script. (Closes: #781482)
+  * Make use of upstream's rewritten Makefile (via dh_auto_install) and
+    change from installation whitelist to installation blacklist (delete a
+    few files from debian/tmp which shouldn't go into the package).
+    + Removed (obsolete):
+      - debian/conkeror-spawn-process-helper.dirs
+      - debian/conkeror.dirs
+      - debian/conkeror.manpages
+    + Massively reduced (list of upstream files now in upstream Makefile):
+      - debian/conkeror.install
+    + Modified, includes the mentioned blacklist:
+      - debian/rules
+  * debian/rules: Remove long-time obsolete and non-functional build-time
+    modification of components/application.js.
+  * debian/copyright: Update authors and years.
 
- -- Axel Beckert <abe@debian.org>  Thu, 29 Jan 2015 14:32:32 +0100
+ -- Axel Beckert <abe@debian.org>  Thu, 30 Apr 2015 02:35:32 +0200
 
 conkeror (1.0~~pre-1+git141025-1) unstable; urgency=low
 
